@@ -1,4 +1,4 @@
-package dnsLookup
+package dns
 
 import (
 	"testing"

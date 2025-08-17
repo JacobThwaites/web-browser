@@ -1,4 +1,4 @@
-package dnsLookup
+package dns
 
 import (
 	"fmt"
@@ -17,15 +17,14 @@ func extractDomain(url string) string {
     }
 }
 
-func lookupIp(url string) {
-	ips, err := net.LookupIP(url)
+func LookupIp(url string) net.IP {
+	domain := extractDomain(url)
+	ips, err := net.LookupIP(domain)
 
 	if err != nil {
 		fmt.Println("Error:", err)
-		return
 	}
 
-	for _, ip := range ips {
-		fmt.Println("IP address:", ip)
-	}
+	last := ips[len(ips)-1]
+	return last
 }
