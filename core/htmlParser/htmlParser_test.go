@@ -1,6 +1,7 @@
 package htmlparser
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -21,6 +22,44 @@ func openTestFile(filename string) ([]byte, error) {
 	return data, nil
 }
 
+func TestTokenizer(t *testing.T) {
+	file, err := openTestFile("simple.html")
+
+	if err != nil {
+		t.Fatalf("failed to open test file: %v", err)
+	}
+
+	tokens, err := Tokenize(file)
+
+	for i := range tokens {
+		fmt.Println(tokens[i].Type.String() + " " + tokens[i].Data)
+	}
+
+	if err != nil {
+		t.Errorf("Error Message = %v; want %v", err.Error(), "invalid doctype")
+	}
+
+	expected := []Token{
+        {Type: DoctypeToken, Data: "html"},
+        {Type: StartTagToken, Data: "html"},
+        {Type: StartTagToken, Data: "head"},
+        {Type: EndTagToken, Data: "head"},
+        {Type: StartTagToken, Data: "body"},
+        {Type: EndTagToken, Data: "body"},
+        {Type: EndTagToken, Data: "html"},
+    }
+
+	if len(tokens) != len(expected) {
+        t.Fatalf("token count mismatch: got %d, want %d", len(tokens), len(expected))
+    }
+
+    for i, tok := range tokens {
+        if tok.Type != expected[i].Type || tok.Data != expected[i].Data {
+            t.Errorf("token %d mismatch: got %+v, want %+v", i, tok, expected[i])
+        }
+    }
+}
+
 func TestInvalidDocType(t *testing.T) {
 	invalidDocTypeFile, err := openTestFile("invalidDoctype.html")
 
@@ -35,29 +74,19 @@ func TestInvalidDocType(t *testing.T) {
 	}
 }
 
-// func TestGetDomain(t *testing.T) {
-// 	// get directory of this test file
-// 	_, filename, _, _ := runtime.Caller(0)
-// 	currentDir := filepath.Dir(filename)
-// 	path := filepath.Join(currentDir, "testData", "basic.html")
+func TestGetDomain(t *testing.T) {
+	testFile, err := openTestFile("basic.html")
 
-// 	f, err := os.Open(path)
-// 	if err != nil {
-// 		t.Fatalf("failed to open test file: %v", err)
-// 	}
+	if err != nil {
+		t.Fatalf("failed to open test file: %v", err)
+	}
 
-// 	defer f.Close()
 
-// 	domTree, err := ParseHTML()
+	domTree, err := ParseHTML(testFile)
 
-// 	if err != nil {
-// 		t.Errorf("Error parsing HTML: %v", err)
-// 	}
+	if err != nil {
+		fmt.Println(domTree)
+		t.Errorf("Error parsing HTML: %v", err)
+	}
 
-// 	fmt.Println(domTree)
-
-// 	got := 1
-//     if got != 1 {
-//         t.Errorf("Abs(-1) = %d; want 1", got)
-//     }
-// }
+}
