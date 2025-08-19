@@ -38,6 +38,7 @@ func TestTokenizer(t *testing.T) {
 	expected := []Token{
         {Type: DoctypeToken, Data: "html"},
         {Type: StartTagToken, Data: "html"},
+		{Type: CommentToken, Data: " asdf->"},
         {Type: StartTagToken, Data: "head"},
         {Type: EndTagToken, Data: "head"},
         {Type: StartTagToken, Data: "body"},

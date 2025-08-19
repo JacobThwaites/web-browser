@@ -67,7 +67,17 @@ func Tokenize(httpBody []byte) ([]Token, error) {
 				if i+14 < len(httpBody) && strings.HasPrefix(string(httpBody[i-1:i+15]), "<!DOCTYPE html>") {
 					tokens = append(tokens, Token{DoctypeToken, "html"})
 					i += 14 // skip the rest of "<!DOCTYPE html>"
+				} else if i+3 < len(httpBody) && string(httpBody[i:i+3]) == "!--" { // Comment tag
+					comment := ""
+					i += 3
+					for i+3 < len(httpBody) && string(httpBody[i:i+3]) != "-->" {
+						comment += string(httpBody[i])
+						i++
+					}
+					tokens = append(tokens, Token{CommentToken, comment})
+					i += 3
 				} else {
+					fmt.Println(string(httpBody[i:i+2]))
 					return []Token{}, errors.New("invalid doctype")
 				}
 				isTag = false
