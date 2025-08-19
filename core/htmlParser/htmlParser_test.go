@@ -31,10 +31,6 @@ func TestTokenizer(t *testing.T) {
 
 	tokens, err := Tokenize(file)
 
-	for i := range tokens {
-		fmt.Println(tokens[i].Type.String() + " " + tokens[i].Data)
-	}
-
 	if err != nil {
 		t.Errorf("Error Message = %v; want %v", err.Error(), "invalid doctype")
 	}
