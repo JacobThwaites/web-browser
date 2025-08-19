@@ -22,6 +22,18 @@ func openTestFile(filename string) ([]byte, error) {
 	return data, nil
 }
 
+func mapsEqual(a, b map[string]string) bool {
+    if len(a) != len(b) {
+        return false
+    }
+    for k, v := range a {
+        if bv, ok := b[k]; !ok || bv != v {
+            return false
+        }
+    }
+    return true
+}
+
 func TestTokenizer(t *testing.T) {
 	file, err := openTestFile("simple.html")
 
@@ -37,9 +49,9 @@ func TestTokenizer(t *testing.T) {
 
 	expected := []Token{
         {Type: DoctypeToken, Data: "html"},
-        {Type: StartTagToken, Data: "html"},
+        {Type: StartTagToken, Data: "html", Properties: map[string]string{"lang": "en"}},
 		{Type: CommentToken, Data: " asdf->"},
-        {Type: StartTagToken, Data: "head"},
+        {Type: StartTagToken, Data: "head", Properties: map[string]string{"noValue": "", "foo": "bar"}},
         {Type: EndTagToken, Data: "head"},
         {Type: StartTagToken, Data: "body"},
 		{Type: TextToken, Data: "Some text"},
@@ -52,7 +64,7 @@ func TestTokenizer(t *testing.T) {
     }
 
     for i, tok := range tokens {
-        if tok.Type != expected[i].Type || tok.Data != expected[i].Data {
+        if tok.Type != expected[i].Type || tok.Data != expected[i].Data || !mapsEqual(tok.Properties, expected[i].Properties) {
             t.Errorf("token %d mismatch: got %+v, want %+v", i, tok, expected[i])
         }
     }

@@ -52,6 +52,73 @@ func (tt TokenType) String() string {
 type Token struct {
 	Type TokenType
 	Data string
+	Properties map[string]string
+}
+
+func NewToken(tokenType TokenType, data string, props ...map[string]string) Token {
+	var properties map[string]string
+    if len(props) > 0 {
+        properties = props[0]
+    }
+
+    return Token{
+        Type:       tokenType,
+        Data:       data,
+        Properties: properties,
+    }
+}
+
+func formatProperties(properties string) (map[string]string, error) {
+	formatted := make(map[string]string)
+
+	pairs := strings.Split(properties, " ")
+
+	for i := range pairs {
+		property := pairs[i]
+
+		if len(property) == 0 {
+			continue
+		}
+
+		key := ""
+		value := ""
+
+		for j := 0; j < len(property); j++ {
+			for j < len(property) {
+				if property[j] == '=' {
+					j++
+					break
+				}
+
+				key += string(property[j])
+				j++
+			}
+
+			if len(key) == 0 {
+				return make(map[string]string), errors.New("invalid tag property")
+			}
+
+			if j >= len(property) {
+				break
+			}
+
+			if property[j] != '"' || property[len(property) - 1] != '"' {
+				return make(map[string]string), errors.New("invalid tag property key")
+			}
+
+			// ignore opening quotation mark
+			j++
+
+			for j < len(property) - 1 {
+				value += string(property[j])
+				j++
+			}
+		}
+
+		formatted[key] = value
+	}
+
+	return formatted, nil
 }
 
 func Tokenize(httpBody []byte) ([]Token, error) {
@@ -61,10 +128,9 @@ func Tokenize(httpBody []byte) ([]Token, error) {
 	for i := 0; i < len(httpBody); i++ {
 		char := string(httpBody[i])
 		if isTag {
-			// Doctype
-			if char == "!" {
+			if char == "!" { // Doctype
 				if i+14 < len(httpBody) && strings.HasPrefix(string(httpBody[i-1:i+15]), "<!DOCTYPE html>") {
-					tokens = append(tokens, Token{DoctypeToken, "html"})
+					tokens = append(tokens, NewToken(DoctypeToken, "html"))
 					i += 14 // skip the rest of "<!DOCTYPE html>"
 				} else if i+3 < len(httpBody) && string(httpBody[i:i+3]) == "!--" { // Comment tag
 					comment := ""
@@ -73,7 +139,7 @@ func Tokenize(httpBody []byte) ([]Token, error) {
 						comment += string(httpBody[i])
 						i++
 					}
-					tokens = append(tokens, Token{CommentToken, comment})
+					tokens = append(tokens, NewToken(CommentToken, comment))
 					i += 3
 				} else {
 					fmt.Println(string(httpBody[i:i+2]))
@@ -87,7 +153,7 @@ func Tokenize(httpBody []byte) ([]Token, error) {
 					tagType += string(httpBody[i])
 					i++
 				}
-				tokens = append(tokens, Token{EndTagToken, tagType})
+				tokens = append(tokens, NewToken(EndTagToken, tagType))
 				isTag = false
 			} else { // Start tag
 				tagType := ""
@@ -97,10 +163,20 @@ func Tokenize(httpBody []byte) ([]Token, error) {
 					i++
 				}
 
+				// Get propeties
+				properties := ""
 				for i < len(httpBody) && httpBody[i] != '>' {
+					properties += string(httpBody[i])
 					i++
 				}
-				tokens = append(tokens, Token{StartTagToken, tagType})
+
+				formattedProperties, err := formatProperties(properties)
+
+				if err != nil {
+					return []Token{}, err
+				}
+
+				tokens = append(tokens, NewToken(StartTagToken, tagType, formattedProperties))
 				isTag = false
 			}
 		} else if char == "<" {
@@ -117,7 +193,7 @@ func Tokenize(httpBody []byte) ([]Token, error) {
 
 			text = strings.TrimSpace(text)
 			if text != "" {
-				tokens = append(tokens, Token{TextToken, text})
+				tokens = append(tokens, NewToken(TextToken, text))
 			}
 			i--
 		}
@@ -132,8 +208,6 @@ func ParseHTML(httpBody []byte) (DomElement, error) {
 	if docType != "<!doctype html>" {
 		return DomElement{}, errors.New("invalid doctype")
 	}
-
-	fmt.Println("calling func")
 
 	// domTree, err := generateDomTree(httpBody[16:], DomElement{})
 	domTree := DomElement{}
