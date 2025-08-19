@@ -42,6 +42,7 @@ func TestTokenizer(t *testing.T) {
         {Type: StartTagToken, Data: "head"},
         {Type: EndTagToken, Data: "head"},
         {Type: StartTagToken, Data: "body"},
+		{Type: TextToken, Data: "Some text"},
         {Type: EndTagToken, Data: "body"},
         {Type: EndTagToken, Data: "html"},
     }

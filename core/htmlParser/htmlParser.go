@@ -56,7 +56,6 @@ type Token struct {
 
 func Tokenize(httpBody []byte) ([]Token, error) {
 	tokens := []Token{}
-	curr := ""
 	isTag := false
 
 	for i := 0; i < len(httpBody); i++ {
@@ -105,65 +104,27 @@ func Tokenize(httpBody []byte) ([]Token, error) {
 				isTag = false
 			}
 		} else if char == "<" {
+			if isTag {
+				return []Token{}, errors.New("invalid tag; double << ")
+			}
 			isTag = true
 		} else {
-			// text nodes ignored for now
-			curr += char
+			text := ""
+			for i < len(httpBody) && string(httpBody[i]) != "<" {
+				text += string(httpBody[i])
+				i++
+			}
+
+			text = strings.TrimSpace(text)
+			if text != "" {
+				tokens = append(tokens, Token{TextToken, text})
+			}
+			i--
 		}
 	}
 
 	return tokens, nil
 }
-
-
-// func Tokenize(httpBody []byte) ([]Token, error) {
-// 	tokens := []Token{}
-// 	i := 0
-// 	for i < len(httpBody) {
-// 		if httpBody[i] == '<' {
-// 			// Doctype or comment
-// 			if i+1 < len(httpBody) && httpBody[i+1] == '!' {
-// 				if i+15 <= len(httpBody) && strings.HasPrefix(string(httpBody[i:i+15]), "<!DOCTYPE html>") {
-// 					tokens = append(tokens, Token{DoctypeToken, "html"})
-// 					i += 15
-// 					continue
-// 				} else {
-// 					return nil, errors.New("invalid doctype")
-// 				}
-// 			}
-
-// 			// End tag
-// 			if i+1 < len(httpBody) && httpBody[i+1] == '/' {
-// 				j := i + 2
-// 				for j < len(httpBody) && httpBody[j] != '>' {
-// 					j++
-// 				}
-// 				tagType := string(httpBody[i+2:j])
-// 				tokens = append(tokens, Token{EndTagToken, tagType})
-// 				i = j + 1
-// 				continue
-// 			}
-
-// 			// Start tag
-// 			j := i + 1
-// 			for j < len(httpBody) && httpBody[j] != '>' && httpBody[j] != ' ' {
-// 				j++
-// 			}
-// 			tagType := string(httpBody[i+1:j])
-
-// 			// Skip attributes (for now)
-// 			for j < len(httpBody) && httpBody[j] != '>' {
-// 				j++
-// 			}
-// 			tokens = append(tokens, Token{StartTagToken, tagType})
-// 			i = j + 1
-// 			continue
-// 		}
-// 		// Text node (ignore whitespace for now)
-// 		i++
-// 	}
-// 	return tokens, nil
-// }
 
 func ParseHTML(httpBody []byte) (DomElement, error) {
 	docType := strings.ToLower(string(httpBody[:15]))
