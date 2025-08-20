@@ -2,6 +2,7 @@ package htmlparser
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 )
 
@@ -213,8 +214,44 @@ type DomElement struct {
 func GenerateDomTree(tokens []Token) DomElement {
 	head := DomElement{tokens[0], []DomElement{}}
 
+	for i := 1; i < len(tokens); i++ {
+		head, i = recursiveGenerate(tokens, head, i)
+		fmt.Println(i)
+	}
+
 	return head
 }
+
+func recursiveGenerate(tokens []Token, curr DomElement, index int) (DomElement, int) {
+    if index >= len(tokens) {
+        return curr, index
+    }
+
+    for index < len(tokens) {
+        token := tokens[index]
+
+        // tags without children
+        if token.Type == CommentToken || token.Type == TextToken {
+            curr.children = append(curr.children, NewDomElement(token.Type, token.Data, token.Properties))
+            index++
+            continue
+        }
+
+        // closing tag for current level
+        if token.Type == EndTagToken && token.Data == curr.token.Data {
+            return curr, index + 1
+        }
+
+        // start a new element and recurse
+        newElem := NewDomElement(token.Type, token.Data, token.Properties)
+        child, newIndex := recursiveGenerate(tokens, newElem, index+1)
+        curr.children = append(curr.children, child)
+        index = newIndex
+    }
+
+    return curr, index
+}
+
 
 func ParseHTML(httpBody []byte) (DomElement, error) {
 	docType := strings.ToLower(string(httpBody[:15]))
@@ -223,7 +260,6 @@ func ParseHTML(httpBody []byte) (DomElement, error) {
 		return DomElement{}, errors.New("invalid doctype")
 	}
 
-	// domTree, err := generateDomTree(httpBody[16:], DomElement{})
 	domTree := DomElement{}
 
 	return domTree, nil

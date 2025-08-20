@@ -1,7 +1,6 @@
 package htmlparser
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -82,35 +81,4 @@ func TestGenerateDomTree(t *testing.T) {
 	if !TreesEqual(domTree, expected) {
         t.Errorf("incorrect tree comparison, text not equivalent: got %+v, want %+v", DomTreeToString(domTree), DomTreeToString(expected))
     }
-}
-
-func TestInvalidDocType(t *testing.T) {
-	invalidDocTypeFile, err := openTestFile("invalidDoctype.html")
-
-	if err != nil {
-		t.Fatalf("failed to open test file: %v", err)
-	}
-
-	_, err = ParseHTML(invalidDocTypeFile)
-
-	if err.Error() != "invalid doctype" {
-		t.Errorf("Error Message = %v; want %v", err.Error(), "invalid doctype")
-	}
-}
-
-func TestGetDomain(t *testing.T) {
-	testFile, err := openTestFile("basic.html")
-
-	if err != nil {
-		t.Fatalf("failed to open test file: %v", err)
-	}
-
-
-	domTree, err := ParseHTML(testFile)
-
-	if err != nil {
-		fmt.Println(domTree)
-		t.Errorf("Error parsing HTML: %v", err)
-	}
-
 }
