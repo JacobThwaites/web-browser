@@ -2,19 +2,8 @@ package htmlparser
 
 import (
 	"errors"
-	"fmt"
 	"strings"
 )
-
-type DomElement struct {
-	tag        string
-	text       string
-	properties []string
-	children   []DomElement
-}
-
-type DomTree struct {
-}
 
 type TokenType int
 
@@ -66,6 +55,21 @@ func NewToken(tokenType TokenType, data string, props ...map[string]string) Toke
         Data:       data,
         Properties: properties,
     }
+}
+
+func NewDomElement(tokenType TokenType, data string, props ...map[string]string) DomElement {
+	var properties map[string]string
+    if len(props) > 0 {
+        properties = props[0]
+    }
+
+    token := Token{
+        Type:       tokenType,
+        Data:       data,
+        Properties: properties,
+    }
+
+	return DomElement{token, []DomElement{}}
 }
 
 func formatProperties(properties string) (map[string]string, error) {
@@ -142,7 +146,6 @@ func Tokenize(httpBody []byte) ([]Token, error) {
 					tokens = append(tokens, NewToken(CommentToken, comment))
 					i += 3
 				} else {
-					fmt.Println(string(httpBody[i:i+2]))
 					return []Token{}, errors.New("invalid doctype")
 				}
 				isTag = false
@@ -200,6 +203,17 @@ func Tokenize(httpBody []byte) ([]Token, error) {
 	}
 
 	return tokens, nil
+}
+
+type DomElement struct {
+	token Token
+	children []DomElement
+}
+
+func GenerateDomTree(tokens []Token) DomElement {
+	head := DomElement{tokens[0], []DomElement{}}
+
+	return head
 }
 
 func ParseHTML(httpBody []byte) (DomElement, error) {

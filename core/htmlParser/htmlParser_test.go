@@ -70,7 +70,18 @@ func TestGenerateDomTree(t *testing.T) {
 	}
 
 	domTree := GenerateDomTree(tokens)
-	fmt.Println(domTree)
+
+	expected :=  NewDomElement(DoctypeToken, "html")
+	htmlTag := NewDomElement(StartTagToken, "html")
+	headTag := NewDomElement(StartTagToken, "head")
+	headTag.children = append(headTag.children, NewDomElement(TextToken, "Some text"))
+	htmlTag.children = append(htmlTag.children, headTag)
+	expected.children = append(expected.children, htmlTag)
+
+
+	if !TreesEqual(domTree, expected) {
+        t.Errorf("incorrect tree comparison, text not equivalent: got %+v, want %+v", DomTreeToString(domTree), DomTreeToString(expected))
+    }
 }
 
 func TestInvalidDocType(t *testing.T) {

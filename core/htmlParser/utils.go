@@ -35,3 +35,23 @@ func MapsEqual(a, b map[string]string) bool {
     }
     return true
 }
+
+func DomTreeToString(tree DomElement) string {
+    return domTreeToStringHelper(tree, "")
+}
+
+func domTreeToStringHelper(tree DomElement, indent string) string {
+    if len(tree.children) == 0 {
+        return indent + tree.token.Data
+    }
+
+    result := indent + tree.token.Data + "\n" + indent + "{\n"
+
+    for _, child := range tree.children {
+        result += domTreeToStringHelper(child, indent+"\t") + "\n"
+    }
+
+    result += indent + "}"
+
+    return result
+}
