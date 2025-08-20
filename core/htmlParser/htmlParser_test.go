@@ -22,17 +22,6 @@ func openTestFile(filename string) ([]byte, error) {
 	return data, nil
 }
 
-func mapsEqual(a, b map[string]string) bool {
-    if len(a) != len(b) {
-        return false
-    }
-    for k, v := range a {
-        if bv, ok := b[k]; !ok || bv != v {
-            return false
-        }
-    }
-    return true
-}
 
 func TestTokenizer(t *testing.T) {
 	file, err := openTestFile("simple.html")
@@ -64,10 +53,24 @@ func TestTokenizer(t *testing.T) {
     }
 
     for i, tok := range tokens {
-        if tok.Type != expected[i].Type || tok.Data != expected[i].Data || !mapsEqual(tok.Properties, expected[i].Properties) {
+        if tok.Type != expected[i].Type || tok.Data != expected[i].Data || !MapsEqual(tok.Properties, expected[i].Properties) {
             t.Errorf("token %d mismatch: got %+v, want %+v", i, tok, expected[i])
         }
     }
+}
+
+func TestGenerateDomTree(t *testing.T) {
+	tokens := []Token{
+		NewToken(DoctypeToken, "html"),
+		NewToken(StartTagToken, "html"),
+		NewToken(StartTagToken, "head"),
+		NewToken(TextToken, "Some text"),
+		NewToken(EndTagToken, "head"),
+		NewToken(EndTagToken, "html"),
+	}
+
+	domTree := GenerateDomTree(tokens)
+	fmt.Println(domTree)
 }
 
 func TestInvalidDocType(t *testing.T) {
