@@ -5,9 +5,11 @@ import (
 	"net"
 
 	"web-browser/dns"
+	"web-browser/hsts"
 )
 
 func main() {
+	hsts.LoadHsts()
 	url := "https://example.com"
 	ipAddress := dns.LookupIp(url)
 	fmt.Println("IP Used: " + ipAddress.String())
