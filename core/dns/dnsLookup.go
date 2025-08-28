@@ -6,7 +6,7 @@ import (
 	"regexp"
 )
 
-func extractDomain(url string) string {
+func ExtractDomain(url string) string {
 	re := regexp.MustCompile(`^(?:https?://)?(?:www\.)?([^/]+)`)
     match := re.FindStringSubmatch(url)
 
@@ -18,7 +18,7 @@ func extractDomain(url string) string {
 }
 
 func LookupIp(url string) net.IP {
-	domain := extractDomain(url)
+	domain := ExtractDomain(url)
 	ips, err := net.LookupIP(domain)
 
 	if err != nil {
