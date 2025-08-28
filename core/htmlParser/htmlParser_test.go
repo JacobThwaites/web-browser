@@ -39,7 +39,7 @@ func TestTokenizer(t *testing.T) {
         {Type: DoctypeToken, Data: "html"},
         {Type: StartTagToken, Data: "html", Properties: map[string]string{"lang": "en"}},
 		{Type: CommentToken, Data: " asdf->"},
-        {Type: StartTagToken, Data: "head", Properties: map[string]string{"noValue": "", "foo": "bar"}},
+        {Type: StartTagToken, Data: "head", Properties: map[string]string{"noValue": "", "foo": "bar asdf"}},
         {Type: EndTagToken, Data: "head"},
         {Type: StartTagToken, Data: "body"},
 		{Type: TextToken, Data: "Some text"},

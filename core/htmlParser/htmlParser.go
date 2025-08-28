@@ -76,7 +76,7 @@ func NewDomElement(tokenType TokenType, data string, props ...map[string]string)
 func formatProperties(properties string) (map[string]string, error) {
 	formatted := make(map[string]string)
 
-	pairs := strings.Split(properties, " ")
+	pairs := splitTagProperties(properties)
 
 	for i := range pairs {
 		property := pairs[i]
@@ -126,6 +126,43 @@ func formatProperties(properties string) (map[string]string, error) {
 	return formatted, nil
 }
 
+func splitTagProperties(tag string) []string {
+	properties := []string{}
+
+	property := ""
+	isKey := true
+	quoteCount := 0
+
+	for _, char := range tag {
+		if char == ' '  {
+			if isKey {
+				if len(property) == 0 {
+					continue
+				}
+
+				properties = append(properties, property)
+				property = ""
+				continue
+			}
+		} else if char == '=' {
+			isKey = false
+		} else if char == '"' {
+			quoteCount++
+
+			if quoteCount == 2 {
+				property += string(char)
+				properties = append(properties, property)
+				property = ""
+				continue
+			}
+		}
+
+		property += string(char)
+	}
+
+	return properties
+}
+
 func Tokenize(httpBody []byte) ([]Token, error) {
 	tokens := []Token{}
 	isTag := false
@@ -134,7 +171,7 @@ func Tokenize(httpBody []byte) ([]Token, error) {
 		char := string(httpBody[i])
 		if isTag {
 			if char == "!" { // Doctype
-				if i+14 < len(httpBody) && strings.HasPrefix(string(httpBody[i-1:i+15]), "<!DOCTYPE html>") {
+				if i+14 < len(httpBody) && strings.HasPrefix(strings.ToLower(string(httpBody[i-1:i+15])), "<!doctype html>") {
 					tokens = append(tokens, NewToken(DoctypeToken, "html"))
 					i += 14 // skip the rest of "<!DOCTYPE html>"
 				} else if i+3 < len(httpBody) && string(httpBody[i:i+3]) == "!--" { // Comment tag
@@ -254,13 +291,18 @@ func recursiveGenerate(tokens []Token, curr DomElement, index int) (DomElement, 
 
 
 func ParseHTML(httpBody []byte) (DomElement, error) {
-	docType := strings.ToLower(string(httpBody[:15]))
+    s := strings.TrimSpace(string(httpBody))
+    if !strings.HasPrefix(strings.ToLower(s), "<!doctype html>") {
+        return DomElement{}, errors.New("invalid doctype")
+    }
 
-	if docType != "<!doctype html>" {
-		return DomElement{}, errors.New("invalid doctype")
+	tokens, err := Tokenize(httpBody)
+
+	if err != nil {
+		return DomElement{}, err
 	}
 
-	domTree := DomElement{}
+	domTree := GenerateDomTree(tokens)
 
 	return domTree, nil
 }
