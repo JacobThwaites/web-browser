@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"net"
 
-	"web-browser/dns"
-	"web-browser/hsts"
+	"web-browser/core/dns"
+	"web-browser/core/hsts"
 )
 
 func main() {

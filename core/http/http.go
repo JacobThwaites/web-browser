@@ -19,7 +19,11 @@ type Response struct {
 	Proto      string // e.g. "HTTP/1.0"
 	ProtoMajor int    // e.g. 1
 	ProtoMinor int    // e.g. 0
+	Header     Header
+	Body       []byte
 }
+
+type Header map[string][]string
 
 func Get(url string) ([]byte, error) {
 	domain := dns.ExtractDomain(url)

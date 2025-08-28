@@ -19,7 +19,7 @@ func TestGetDomain(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		got := extractDomain(tt.url)
+		got := ExtractDomain(tt.url)
 		if got != tt.expected {
 			t.Errorf("extractDomain(%q) = %q; want %q", tt.url, got, tt.expected)
 		}
@@ -27,7 +27,7 @@ func TestGetDomain(t *testing.T) {
 }
 
 func TestDnsLookup(t *testing.T) {
-    lookupIp("example.com")
+    LookupIp("example.com")
     result := "foo"
     expected := "foo"
 
