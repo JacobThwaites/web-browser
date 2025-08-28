@@ -134,16 +134,14 @@ func splitTagProperties(tag string) []string {
 	quoteCount := 0
 
 	for _, char := range tag {
-		if char == ' '  {
-			if isKey {
-				if len(property) == 0 {
-					continue
-				}
-
-				properties = append(properties, property)
-				property = ""
+		if char == ' ' && isKey  {
+			if len(property) == 0 {
 				continue
 			}
+
+			properties = append(properties, property)
+			property = ""
+			continue
 		} else if char == '=' {
 			isKey = false
 		} else if char == '"' {
