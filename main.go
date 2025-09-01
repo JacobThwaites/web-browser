@@ -1,27 +1,24 @@
 package main
 
 import (
-	"fmt"
-	"net"
+	"log"
+	"web-browser/ui"
 
-	"web-browser/core/dns"
-	"web-browser/core/hsts"
+	"github.com/hajimehoshi/ebiten/v2"
 )
 
 func main() {
-	hsts.LoadHsts()
-	url := "https://example.com"
-	ipAddress := dns.LookupIp(url)
-	fmt.Println("IP Used: " + ipAddress.String())
+	screenWidth  := 640
+	screenHeight := 480
+	g := &ui.Window{
+		Text:    "",
+		Counter: 0,
+	}
 
-	// TODO: implement HSTS and logic for deciding whether to use HTTP or HTTPS
-	// HTTPS_PORT := 443
-
-	conn, err := net.Dial("tcp", ipAddress.String())
-    if err != nil {
-        fmt.Println("Error:", err)
-        return
-    }
-    defer conn.Close()
+	ebiten.SetWindowSize(screenWidth, screenHeight)
+	ebiten.SetWindowTitle("Web Browser")
+	if err := ebiten.RunGame(g); err != nil {
+		log.Fatal(err)
+	}
 
 }
